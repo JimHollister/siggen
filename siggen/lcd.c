@@ -3,7 +3,7 @@
 *
 * The timing of operations in this function must meet the minimum timing constraints of the
 * Microchip 80438 display driver. This functions assumes a system clock of 16.384 MHz and that this
-* function has been compiled with optimization (-O1, -O2, -O3, or -Os). If the function is not compiled
+* function has been compiled with optimization level -O1 or -Os). If the function is not compiled
 * with optimization (-O0) the function will still work, but will send bits to the LCD more slowly.
 */
 
@@ -24,10 +24,6 @@ void lcd_initialize()
 * Send the specified number of bits to the LCD shift register. 1 <= num_bits <= 8.
 * It's assumed that the bits are right-aligned in the value byte. For example, to send the 4-bit
 * value 0b1010 to the LCD: value = 0x0A and num_bits = 4.
-* The timing of operations in this function must meet the minimum timing constraints of the
-* Microchip 80438 display driver. This functions assumes a system clock of 16.384 MHz and that this
-* function has been compiled with optimization (-O1, -O2, -O3, or -Os). If the function is not compiled
-* with optimization (-O0) the function will still work, but will send bits to the LCD more slowly.
 */
 void lcd_send_variable_bits(uint8_t value, uint8_t num_bits)
 {
@@ -61,7 +57,7 @@ void lcd_send_variable_bits(uint8_t value, uint8_t num_bits)
 void lcd_update_display()
 {
 	PORTB |= _BV(PORTB1);		// Port B pin 1 high; Assert LCD Load
-	asm volatile("nop\n\t"
+	asm volatile("nop\n\t"		// Delay so that the minimum load time spect is not violated
 	"nop\n\t"
 	"nop\n\t"
 	"nop\n\t"
@@ -72,9 +68,6 @@ void lcd_update_display()
 
 void lcd_test1()
 {
-	while(1) {
-		PORTB &= ~(1 << PORTB7);		// Set USCK initially low to verify that it goes high before toggling
-	
 		lcd_send_variable_bits(0x00, 4);
 		lcd_send_variable_bits(0x7F, 7);
 		lcd_send_variable_bits(0x07, 7);
@@ -86,7 +79,4 @@ void lcd_test1()
 		lcd_send_variable_bits(0x5B, 7);
 		lcd_send_variable_bits(0x06, 7);
 		lcd_update_display();
-	
-		_delay_us(10);
-	}
 }

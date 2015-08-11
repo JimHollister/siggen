@@ -30,8 +30,14 @@ int main(void)
 
 	while(1)
 	{
-		lcd_test1();
-//		dds_test1();
+		PORTB &= ~(1 << PORTB7);		// Set USCK initially low to verify that it goes high before toggling
+		
+		while (1) {
+			dds_test1();
+			_delay_us(50);
+			lcd_test1();
+			_delay_us(50);
+		}
 
 		//for (uint16_t i = 0; i<1000; i++) {}
 		//	    if (num_interrupts == 29) {

@@ -1,6 +1,10 @@
-// Initialization for the DDS chip
 /*
 * Functions for handling the DDS chip.
+*
+* The timing of operations in this function must meet the minimum timing constraints of the
+* Analog Devices AD9834 DDS chip. This functions assumes a system clock of 16.384 MHz and that this
+* function has been compiled with optimization level -O1 or -Os). If the function is not compiled
+* with optimization (-O0) the function will still work, but will send bits to the DDS more slowly.
 */
 
 #include <avr/io.h>
@@ -45,11 +49,7 @@ void dds_send_16_bits(uint16_t value)
 
 void dds_test1()
 {
-	while(1) {
-		PORTB &= ~(1 << PORTB7);		// Set USCK initially low to verify that it goes high before toggling
-		for (uint8_t i = 0; i<5; i++) {
-			dds_send_16_bits(0x5aa5);
-		}
-		_delay_us(10);
+	for (uint8_t i = 0; i<5; i++) {
+		dds_send_16_bits(0x5aa5);
 	}
 }
