@@ -1,3 +1,4 @@
 # Visual Studio debug and release build directories
 Debug
 Release
+*.atsuo
