@@ -1,13 +1,24 @@
-#include <avr/io.h>
-
 // Initialization for the DDS chip
-void dds_initialize() {
+/*
+* Functions for handling the DDS chip.
+*/
+
+#include <avr/io.h>
+#include "common.h"
+#include <util/delay.h>
+
+/*
+* Initialize the DDS. This assumes that the USI has already been initialized.
+*/
+void dds_initialize()
+{
 	DDRB |= (1 << DDB0);									// Port B pin 0 is an output for DDS Slave Select
 	PORTB |= (1 << PORTB0);									// Port B pin 0 high; DDS chip SPI disabled
 }
 
 // Send 16 bits to the DDS using the SPI protocol
-void dds_send_16_bits(uint16_t value) {
+void dds_send_16_bits(uint16_t value)
+{
 	uint8_t ms_byte = value >> 8;
 	uint8_t ls_byte = value;
 	
@@ -30,4 +41,15 @@ void dds_send_16_bits(uint16_t value) {
 	}
 	
 	PORTB |= (1 << PORTB0);					// Port B pin 0 high; SPI chip deselected
+}
+
+void dds_test1()
+{
+	while(1) {
+		PORTB &= ~(1 << PORTB7);		// Set USCK initially low to verify that it goes high before toggling
+		for (uint8_t i = 0; i<5; i++) {
+			dds_send_16_bits(0x5aa5);
+		}
+		_delay_us(10);
+	}
 }

@@ -96,6 +96,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="common.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="dds.c">
       <SubType>compile</SubType>
     </Compile>
