@@ -8,16 +8,14 @@
 */
 
 #include <avr/io.h>
-#include "common.h"
-#include <util/delay.h>
 
 /*
 * Initialize the LCD. This assumes that the USI has already been initialized.
 */
 void lcd_initialize()
 {
-	DDRB |= (1 << DDB1);									// Port B pin 1 is an output for LCD Load
-	PORTB &= ~(1 << PORTB1);								// Port B pin 1 low; LCD Load low
+	DDRB |= _BV(DDB1);									// Port B pin 1 is an output for LCD Load
+	PORTB &= ~_BV(PORTB1);								// Port B pin 1 low; LCD Load low
 }
 
 /* 
