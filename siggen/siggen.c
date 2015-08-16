@@ -31,7 +31,9 @@ int main(void)
 	dds_initialize();
 	
 	// Input tests
-	pin_test1();
+//	pin_test1();
+//	pin_test2();
+	pin_test3();
 
 	while(1)
 	{

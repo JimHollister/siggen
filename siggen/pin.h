@@ -8,5 +8,7 @@
 
 void pin_initialize();
 void pin_test1();
+void pin_test2();
+void pin_test3();
 
 #endif /* PIN_H_ */
