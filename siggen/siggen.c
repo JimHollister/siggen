@@ -1,18 +1,9 @@
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include "common.h"
 #include <util/delay.h>
 #include "pin.h"
 #include "lcd.h"
 #include "dds.h"
-
-volatile uint16_t num_interrupts = 0;
-
-// Interrupt service routine for timer 0 output compare match interrupt
-ISR(TIMER0_COMPA_vect)
-{
-	num_interrupts++;
-}
 
 /*
 * Initialization of the USI peripheral. USI is used to communicate with the DDS chip and the LCD.
@@ -33,7 +24,8 @@ int main(void)
 	// Input tests
 //	pin_test1();
 //	pin_test2();
-	pin_test3();
+//	pin_test3();
+	pin_test4();
 
 	while(1)
 	{
