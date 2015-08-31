@@ -16,27 +16,32 @@ void usi_initialize()
 
 int main(void)
 {
-	pin_initialize();
+//	pin_initialize();
 	usi_initialize();
 	lcd_initialize();
-	dds_initialize();
+//	dds_initialize();
 	
 	// Input tests
 //	pin_test1();
 //	pin_test2();
 //	pin_test3();
-	pin_test4();
+//	pin_test4();
+//	pin_test5();
 
 	while(1)
 	{
 		// DDS and LCD communication tests
-		//PORTB &= ~_BV(PORTB7);		// Set USCK initially low to verify that it goes high before toggling
-		//while (1) {
-			//dds_test1();
-			//_delay_us(50);
-			//lcd_test1();
-			//_delay_us(50);
-		//}
+		PORTB &= ~_BV(PORTB7);		// Set USCK initially low to verify that it goes high before toggling
+		while (1) {
+// 			dds_test1();
+// 			_delay_us(50);
+			lcd_test_off();
+			_delay_ms(1000);
+			lcd_test_ordered();
+			_delay_ms(1000);
+			lcd_test_on();
+			_delay_ms(1000);
+		}
 
 		//for (uint16_t i = 0; i<1000; i++) {}
 		//	    if (num_interrupts == 29) {

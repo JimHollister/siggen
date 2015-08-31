@@ -64,17 +64,47 @@ void lcd_update_display()
 	PORTB &= ~_BV(PORTB1);		// Port B pin 1 low; Deassert LCD Load
 }
 
-void lcd_test1()
+void lcd_test_ordered()
 {
-		lcd_send_variable_bits(0x00, 4);
-		lcd_send_variable_bits(0x7F, 7);
-		lcd_send_variable_bits(0x07, 7);
-		lcd_send_variable_bits(0x7D, 7);
-		lcd_send_variable_bits(0x6D, 7);
-		lcd_send_variable_bits(0x02, 4);
-		lcd_send_variable_bits(0x66, 7);
-		lcd_send_variable_bits(0x4F, 7);
-		lcd_send_variable_bits(0x5B, 7);
-		lcd_send_variable_bits(0x06, 7);
+		lcd_send_variable_bits(0x00, 4);	// sym: none
+		lcd_send_variable_bits(0x7F, 7);	// 8
+		lcd_send_variable_bits(0x07, 7);	// 7
+		lcd_send_variable_bits(0x7D, 7);	// 6
+		lcd_send_variable_bits(0x6D, 7);	// 5
+		lcd_send_variable_bits(0x02, 4);	// sym: dp
+		lcd_send_variable_bits(0x66, 7);	// 4
+		lcd_send_variable_bits(0x4F, 7);	// 3
+		lcd_send_variable_bits(0x5B, 7);	// 2
+		lcd_send_variable_bits(0x06, 7);	// 1
 		lcd_update_display();
+}
+
+void lcd_test_off()
+{
+	lcd_send_variable_bits(0x00, 4);	// sym: none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 4);	// sym: none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_send_variable_bits(0x00, 7);	// none
+	lcd_update_display();
+}
+
+void lcd_test_on()
+{
+	lcd_send_variable_bits(0x0F, 4);	// sym: all
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x0F, 4);	// sym: all
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_send_variable_bits(0x7F, 7);	// none
+	lcd_update_display();
 }

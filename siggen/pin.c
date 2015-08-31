@@ -123,24 +123,28 @@ volatile uint8_t pb_filtered = 0;
 volatile uint8_t pb_state = 0;
 volatile uint8_t pb_state_changed = 0;
 
+volatile uint8_t encA_filtered = 0;
+volatile uint8_t encA_state = 0;
+volatile uint8_t encA_state_changed = 0;
+
 // Interrupt service routine for timer 0 output compare match interrupt
-ISR(TIMER0_COMPA_vect)
-{
-	uint8_t pb_raw;
-	
-	// Read raw input and convert to low=0x00 and high=0xFF
-	pb_raw = (PIND & _BV(PIND6)) > 0 ? 0x00 : 0xFF;
-	
-	// Filtered value is 7/8 of previous filtered value plus 1/8 of current raw value
-	pb_filtered = (pb_filtered - (pb_filtered >> 3)) + (pb_raw >> 3);
-	
-	// Compare filtered value to threshold values to see if a state change has occurred.
-	if (pb_state == 1 && pb_filtered < 0x20) {
-		pb_state = 0;
-	} else if (pb_state == 0 && pb_filtered > 0xE0) {
-		pb_state = 1;
-	}
-}
+//ISR(TIMER0_COMPA_vect)
+//{
+	//uint8_t pb_raw;
+	//
+	//// Read raw input and convert to low=0x00 and high=0xFF
+	//pb_raw = (PIND & _BV(PIND6)) > 0 ? 0x00 : 0xFF;
+	//
+	//// Filtered value is 7/8 of previous filtered value plus 1/8 of current raw value
+	//pb_filtered = (pb_filtered - (pb_filtered >> 3)) + (pb_raw >> 3);
+	//
+	//// Compare filtered value to threshold values to see if a state change has occurred.
+	//if (pb_state == 1 && pb_filtered < 0x20) {
+		//pb_state = 0;
+	//} else if (pb_state == 0 && pb_filtered > 0xE0) {
+		//pb_state = 1;
+	//}
+//}
 
 void pin_test4() {
 	pin_test_initialize();
@@ -160,9 +164,77 @@ void pin_test4() {
 	while (1) {
 		// Set pin to indicate pb_state
 		if (pb_state == 1) {
-			PORTD &= ~_BV(PORTD5);			// Port D pin 5 low to indicate state is now 0
-		} else if (pb_state == 0) {
 			PORTD |= _BV(PORTD5);			// Port D pin 5 high to indicate state is now 1
+		} else if (pb_state == 0) {
+			PORTD &= ~_BV(PORTD5);			// Port D pin 5 low to indicate state is now 0
+		}
+	}
+}
+
+void filter_pb()
+{
+	uint8_t pb_raw;
+
+	// Read raw input and convert to low=0x00 and high=0xFF
+	pb_raw = (PIND & _BV(PIND6)) > 0 ? 0x00 : 0xFF;
+
+	// Filtered value is 15/16 of previous filtered value plus 1/16 of current raw value
+	pb_filtered = (pb_filtered - (pb_filtered >> 4)) + (pb_raw >> 4);
+
+	// Compare filtered value to threshold values to see if a state change has occurred.
+	if (pb_state == 1 && pb_filtered < 0x20) {
+		pb_state = 0;
+	} else if (pb_state == 0 && pb_filtered > 0xE0) {
+		pb_state = 1;
+	}	
+}
+
+void filter_encA()
+{
+	uint8_t encA_raw;
+
+	// Read raw input and convert to low=0x00 and high=0xFF
+	encA_raw = (PIND & _BV(PIND6)) > 0 ? 0x00 : 0xFF;
+
+	// Filtered value is 1/4 of previous filtered value plus 3/4 of current raw value
+	encA_filtered = (encA_filtered >> 2) + (encA_raw - (encA_raw >> 2));
+
+	// Compare filtered value to threshold values to see if a state change has occurred.
+	if (encA_state == 1 && encA_filtered < 0x20) {
+		encA_state = 0;
+	} else if (encA_state == 0 && encA_filtered > 0xE0) {
+		encA_state = 1;
+	}
+}
+
+// Interrupt service routine for timer 0 output compare match interrupt
+ISR(TIMER0_COMPA_vect)
+{
+	filter_pb();
+//s	filter_encA();
+}
+
+void pin_test5() {
+	pin_test_initialize();
+	
+	// Set timer/counter 0 to generate a 8kHz square wave on the OC0A pin
+	// This corresponds to a timer compare match every 250us
+	// This assumes a system clock freq of 16.384 MHz
+	TCCR0A = (1 << WGM01) | (0 << WGM00); // Timer in CTC mode (Table 11-8)
+	TCCR0B = (0 << WGM02);
+	TCCR0A |= (0 << COM0A1) | (1 << COM0A0); // Toggle OC0A on compare match (Table 11-2)
+	DDRB |= (1 << OC0A_BIT); // Port B OC0A pin is an output
+	OCR0A = 63; // Set the timer compare value
+	TCCR0B |= (0 << CS02) | (1 << CS01) | (1 << CS00); // Set clock prescale (Table 11-9). Counter starts counting.
+	TIMSK = (1 << OCIE0A); // Enable output compare match interrupt on timer 0
+	
+	sei();									// Enable interrupts
+	while (1) {
+		// Set pin to indicate pb_state
+		if (pb_state == 1) {
+			PORTD |= _BV(PORTD5);			// Port D pin 5 high to indicate state is now 1
+			} else if (pb_state == 0) {
+			PORTD &= ~_BV(PORTD5);			// Port D pin 5 low to indicate state is now 0
 		}
 	}
 }
