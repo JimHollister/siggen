@@ -55,7 +55,7 @@ void lcd_send_variable_bits(uint8_t value, uint8_t num_bits)
 void lcd_update_display()
 {
 	PORTB |= _BV(PORTB1);		// Port B pin 1 high; Assert LCD Load
-	asm volatile("nop\n\t"		// Delay so that the minimum load time spect is not violated
+	asm volatile("nop\n\t"		// Delay so that the minimum load time spec is not violated
 	"nop\n\t"
 	"nop\n\t"
 	"nop\n\t"

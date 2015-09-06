@@ -4,6 +4,9 @@
 #include "pin.h"
 #include "lcd.h"
 #include "dds.h"
+//#include <stdfix.h>
+
+extern void mul_32x32();
 
 /*
 * Initialization of the USI peripheral. USI is used to communicate with the DDS chip and the LCD.
@@ -27,6 +30,17 @@ int main(void)
 //	pin_test3();
 //	pin_test4();
 //	pin_test5();
+
+// Store ratio in a Q32.32 fixed point variable
+//volatile unsigned long accum ratio = 3.57913941333333lk;
+//volatile unsigned accum ratio = 3.57913941333333lk;
+// Desired frequency is also in a Q32.32 fixed point variable
+//volatile unsigned long accum freq = 12345678lk;
+//volatile unsigned accum freq = 1234lk;
+// Calculate frequency word value
+//volatile unsigned long accum word = ratio * freq;
+
+	mul_32x32();
 
 	while(1)
 	{
