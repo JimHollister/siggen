@@ -8,6 +8,9 @@
 */
 
 #include <avr/io.h>
+#include "common.h"
+
+extern unsigned long long mul_32x32(unsigned long multiplicand, unsigned long multiplier);
 
 /*
 * Initialize the DDS. This assumes that the USI has already been initialized.
@@ -45,9 +48,74 @@ void dds_send_16_bits(uint16_t value)
 	PORTB |= _BV(PORTB0);					// Port B pin 0 high; SPI chip deselected
 }
 
+unsigned long tuning_freq_ratio = 0xE5109EC2;		// tuning/freq ratio of 3.57913941333333 in Q2.30 fixed point format
+
+unsigned long calc_tuning_word_fractional(unsigned long output_freq) {
+	// Desired output freq is assumed to be in 32-bit Q25.7 format
+	// Tuning/freq ratio is in 32-bit Q2.30 fixed point format
+	// Multiply output freq by tuning/ratio to get freq word in Q27.37 fixed point
+	// Round this value to a 32-bit unsigned integer
+	unsigned long long result = mul_32x32(output_freq, tuning_freq_ratio);	// Multiply and capture 64-bit result
+	result = result >> 36;										// Right shift to get tuning word in Q63.1 fixed point
+	bool roundup = false;
+	if (result & 1) {roundup = 1;}								// Is the rightmost (1/2 place) bit set? If so, round up the final result
+	unsigned long tuning_word = (unsigned long)(result >> 1);	// Right shift 1 time to get freq word in Q64.0 fixed point. Cast to Q32.0.
+	if (roundup == true) {tuning_word++;}						// If called for, round the freq word up by one
+	return tuning_word;
+}
+
+unsigned long calc_tuning_word_integral(unsigned long output_freq) {
+	// Output freq value is in 32-bit unsigned long format, also known as Q32.0 fixed point format
+	// Shift left to convert to 32-bit Q25.7 fixed point format and call the fractional function
+	return calc_tuning_word_fractional(output_freq << 7);
+}
+
 void dds_test1()
 {
 	for (uint8_t i = 0; i<5; i++) {
 		dds_send_16_bits(0x5aa5);
 	}
 }
+
+void dds_test2() {
+	volatile unsigned long freq_word = 0;
+	
+	freq_word = calc_tuning_word_integral(30000000);	// freq_word should be 107374182
+	freq_word = calc_tuning_word_integral(1000000);	// freq_word should be 3579139
+	freq_word = calc_tuning_word_integral(250000);		// freq_word should be 894785
+	freq_word = calc_tuning_word_integral(1000);		// freq_word should be 3579
+	freq_word = calc_tuning_word_integral(25);			// freq_word should be 89
+	freq_word = calc_tuning_word_integral(4);			// freq_word should be 14
+	freq_word = calc_tuning_word_integral(1);			// freq_word should be 4
+	freq_word = calc_tuning_word_integral(0);			// freq_word should be 0
+	
+	freq_word = calc_tuning_word_fractional(0xAE9D85D9);	// desired freq = 22887179.6953125, freq_word should be 81916407
+}
+
+void dds_test3()
+{
+	// 800 kHz , measure at Rf out
+	dds_send_16_bits(0x2100);
+	dds_send_16_bits(0x70D0);
+	dds_send_16_bits(0x40AE);
+	dds_send_16_bits(0x2000);
+}
+
+void dds_test4()
+{
+	// 5 kHz, measure at audio out
+	dds_send_16_bits(0x2100);
+	dds_send_16_bits(0x45E8);
+	dds_send_16_bits(0x4001);
+	dds_send_16_bits(0x2000);
+}
+
+void dds_test5()
+{
+	// .279 Hz, measure at audio out
+	dds_send_16_bits(0x2100);
+	dds_send_16_bits(0x4001);
+	dds_send_16_bits(0x4000);
+	dds_send_16_bits(0x2000);
+}
+
