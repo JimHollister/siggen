@@ -16,6 +16,8 @@ void usi_initialize()
 
 int main(void)
 {
+	//_delay_ms(1000);
+	
 //	pin_initialize();
 	usi_initialize();
 //	lcd_initialize();
@@ -29,24 +31,29 @@ int main(void)
 //	pin_test5();
 
 	// DDS tests
-	_delay_ms(1000);
 //	dds_test3();
-	dds_test4();
+//	dds_test4();
 //	dds_test5();
 
 	while(1)
 	{
+		unsigned long freq = 1000;
+		
 		// DDS and LCD communication tests
 		PORTB &= ~_BV(PORTB7);		// Set USCK initially low to verify that it goes high before toggling
 		while (1) {
 // 			dds_test1();
- 			_delay_us(50);
+// 			_delay_us(50);
 //			lcd_test_off();
 //			_delay_ms(1000);
 //			lcd_test_ordered();
 //			_delay_ms(1000);
 //			lcd_test_on();
 //			_delay_ms(1000);
+
+			dds_set_frequency_integral(freq);
+			_delay_ms(1000);
+			freq = freq >= 20000 ? 1000 : freq + 1000;
 		}
 
 		//for (uint16_t i = 0; i<1000; i++) {}
