@@ -37,7 +37,7 @@ int main(void)
 
 	while(1)
 	{
-		unsigned long freq = 1000;
+		unsigned long freq = 100000;
 		
 		// DDS and LCD communication tests
 		PORTB &= ~_BV(PORTB7);		// Set USCK initially low to verify that it goes high before toggling
@@ -52,8 +52,8 @@ int main(void)
 //			_delay_ms(1000);
 
 			dds_set_frequency_integral(freq);
-			_delay_ms(1000);
-			freq = freq >= 20000 ? 1000 : freq + 1000;
+			_delay_ms(1);
+			freq = freq >= 2000000 ? 100000 : freq + 100;
 		}
 
 		//for (uint16_t i = 0; i<1000; i++) {}

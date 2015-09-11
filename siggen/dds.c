@@ -12,6 +12,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
 #include "common.h"
 
 extern unsigned long long mul_32x32(unsigned long multiplicand, unsigned long multiplier);
@@ -43,49 +44,60 @@ void dds_send_16_bits(uint16_t value)
 	PORTB |= _BV(PORTB0);					// Port B pin 0 high; SPI chip deselected
 }
 
+// DDS control word bits
+//
+// DB15,DB14 = 00 : Register address = Control
+// DB13 = 1 : B28 = 1, consecutive writes to load freq lsb , msb
+// DB12 = 0 : HLB = 0, (ignored)
+// DB11 = 0 : FSEL = 0
+// DB10 = 0 : PSEL = 0
+// DB9 = 1 : PIN/SW = 0, functions controlled using software
+// DB8 = 0 : RESET = 0
+// DB7 = 0 : SLEEP1 = 0
+// DB6 = 0 : SLEEP12 = 0
+// DB5 = 0 : OPBITEN = 0
+// DB4 = 0 : SIGN/PIB = 0
+// DB3 = 0 : DIV2 = 0
+// DB2 = 0 : Reserved, must be 0
+// DB1 = 0 : MODE = 0, sine lookup table used
+// DB0 = 0 : Reserved, must be 0
+
+// Alternate between using freq0 register and freq1 register so that the DDS chip continues producing output specified
+// by one register while the other register is being set up for the next frequency.
+uint8_t dds_next_register = 0;								// Next freq register to use: 0 or 1
+const uint16_t dds_reg0_control_word PROGMEM = 0x2000;		// Base control word that selects freq register 0 and phase register 0
+const uint16_t dds_reg1_control_word PROGMEM = 0x2C00;		// Base control word that selects freq register 1 and phase register 1
+const uint16_t dds_freq0_addr_bits PROGMEM = 0x4000;		// Register addr bits for frequency register 0
+const uint16_t dds_freq1_addr_bits PROGMEM = 0x8000;		// Register addr bits for frequency register 1
+const uint16_t dds_phase0_addr_bits PROGMEM = 0xC000;		// Register addr bits for phase register 0
+const uint16_t dds_phase1_addr_bits PROGMEM = 0xE000;		// Register addr bits for phase register 1
+
 void dds_change_frequency(unsigned long tuning_word) {
-	// Set base DDS control word value
-	//
-	// DB15,DB14 = 00 : Register address = Control
-	// DB13 = 1 : B28 = 1, consecutive writes to load freq lsb , msb
-	// DB12 = 0 : HLB = 0, (ignored)
-	// DB11 = 0 : FSEL = 0
-	// DB10 = 0 : PSEL = 0
-	// DB9 = 1 : PIN/SW = 0, functions controlled using software
-	// DB8 = 0 : RESET = 0
-	// DB7 = 0 : SLEEP1 = 0
-	// DB6 = 0 : SLEEP12 = 0
-	// DB5 = 0 : OPBITEN = 0
-	// DB4 = 0 : SIGN/PIB = 0
-	// DB3 = 0 : DIV2 = 0
-	// DB2 = 0 : Reserved, must be 0
-	// DB1 = 0 : MODE = 0, sine lookup table used
-	// DB0 = 0 : Reserved, must be 0
-	uint16_t base_control_word = 0x2000;
+	uint32_t tuning_bits = (uint32_t)(tuning_word & 0x0FFFFFFF);	// Mask tuning value to lower 28 bits
 	
-	// Put DDS in reset state prior to frequency change
-	dds_send_16_bits(base_control_word | 0x0100);
-	
-	uint32_t tuning_bits = (uint32_t)(tuning_word & 0x0FFFFFFF);	// Tuning value is 28 bits
-	
+	// Use the next freq register value to identify the base control word and register address bits
+	uint16_t control_word = dds_next_register == 0 ? dds_reg0_control_word : dds_reg1_control_word;
+	uint16_t addr_bits = dds_next_register == 0 ? dds_freq0_addr_bits : dds_freq1_addr_bits;
+		
 	uint16_t freq_word = (uint16_t)(tuning_bits & 0x00003FFF);		// Get bottom 14 bits of tuning value
-	dds_send_16_bits(0x4000 | freq_word);							// Set top two bits to register address and send to DDS
-	
+	dds_send_16_bits(addr_bits | freq_word);						// Set top two bits to register address and send to DDS
+		
 	freq_word = (uint16_t)(tuning_bits >> 14);						// Get top 14 bits of tuning value
-	dds_send_16_bits(0x4000 | freq_word);							// Set top two bits to register address and send to DDS
+	dds_send_16_bits(addr_bits | freq_word);						// Set top two bits to register address and send to DDS
+		
+	dds_send_16_bits(control_word);									// Load control word that identifies freq register to use
 	
-	// Take DDS out of reset state
-	dds_send_16_bits(base_control_word);
+	dds_next_register = dds_next_register == 0 ? 1 : 0;				// Select the register to use next time
 }
 
-unsigned long tuning_freq_ratio = 0xE5109EC2;		// tuning/freq ratio of 3.57913941333333 in Q2.30 fixed point format
+const unsigned long dds_tuning_freq_ratio PROGMEM = 0xE5109EC2;		// tuning/freq ratio of 3.57913941333333 in Q2.30 fixed point format
 
 unsigned long dds_calc_tuning_word_fractional(unsigned long output_freq) {
 	// Desired output freq is assumed to be in 32-bit Q25.7 format
 	// Tuning/freq ratio is in 32-bit Q2.30 fixed point format
 	// Multiply output freq by tuning/ratio to get freq word in Q27.37 fixed point
 	// Round this value to a 32-bit unsigned integer
-	unsigned long long result = mul_32x32(output_freq, tuning_freq_ratio);	// Multiply and capture 64-bit result
+	unsigned long long result = mul_32x32(output_freq, dds_tuning_freq_ratio);	// Multiply and capture 64-bit result
 	result = result >> 36;										// Right shift to get tuning word in Q63.1 fixed point
 	bool roundup = false;
 	if (result & 1) {roundup = 1;}								// Is the rightmost (1/2 place) bit set? If so, round up the final result
@@ -108,6 +120,13 @@ void dds_initialize()
 {
 	DDRB |= _BV(DDB0);									// Port B pin 0 is an output for DDS Slave Select
 	PORTB |= _BV(PORTB0);								// Port B pin 0 high; DDS chip SPI disabled
+	
+	dds_send_16_bits(dds_reg0_control_word | 0x0100);		// Load control word that puts DDS in reset state
+	dds_send_16_bits(dds_freq0_addr_bits | 0x0000);			// Set top two bits to register address and zero freq0 register
+	dds_send_16_bits(dds_phase0_addr_bits | 0x0000);		// Set top two bits to register address and zero phase0 register
+	dds_send_16_bits(dds_freq1_addr_bits | 0x0000);			// Set top two bits to register address and zero freq1 register
+	dds_send_16_bits(dds_phase1_addr_bits | 0x0000);		// Set top two bits to register address and zero phase1 register
+	dds_next_register = 0;									// Set which frequency and phase registers to use next
 }
 
 void dds_set_frequency_integral(unsigned long frequency) {
