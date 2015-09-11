@@ -52,8 +52,9 @@ int main(void)
 //			_delay_ms(1000);
 
 			dds_set_frequency_integral(freq);
-			_delay_ms(1);
-			freq = freq >= 2000000 ? 100000 : freq + 100;
+			//_delay_ms(1);
+			_delay_us(100);
+			freq = freq >= 15000000 ? 100000 : freq + 100;
 		}
 
 		//for (uint16_t i = 0; i<1000; i++) {}
