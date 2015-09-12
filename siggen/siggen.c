@@ -1,9 +1,11 @@
 #include <avr/io.h>
 #include "common.h"
 #include <util/delay.h>
+#include <stdlib.h>
 #include "pin.h"
 #include "lcd.h"
 #include "dds.h"
+#include "bcd.h"
 
 /*
 * Initialization of the USI peripheral. USI is used to communicate with the DDS chip and the LCD.
@@ -18,9 +20,9 @@ int main(void)
 {
 	//_delay_ms(1000);
 	
-//	pin_initialize();
+	pin_initialize();
 	usi_initialize();
-//	lcd_initialize();
+	lcd_initialize();
 	dds_initialize();
 	
 	// Input tests
@@ -34,6 +36,39 @@ int main(void)
 //	dds_test3();
 //	dds_test4();
 //	dds_test5();
+
+	//uint64_t bcd = 0;
+	//bcd = uint32_to_bcd(0);
+	//bcd = uint32_to_bcd(5);
+	//bcd = uint32_to_bcd(123);
+	//bcd = uint32_to_bcd(78681);
+	//bcd = uint32_to_bcd(1000000);
+	//bcd = uint32_to_bcd(87654321);
+	//bcd = uint32_to_bcd(2147483647);
+	//bcd = uint32_to_bcd(4294967295);
+	
+	uint8_t bcd_buf[8];
+	//
+	//bin_to_eight_dec_digits(0, bcd_buf);
+	//bin_to_eight_dec_digits(1, bcd_buf);
+	//bin_to_eight_dec_digits(20, bcd_buf);
+	//bin_to_eight_dec_digits(100, bcd_buf);
+	//bin_to_eight_dec_digits(101, bcd_buf);
+	//bin_to_eight_dec_digits(123, bcd_buf);
+	//bin_to_eight_dec_digits(1234, bcd_buf);
+	//bin_to_eight_dec_digits(12345, bcd_buf);
+	//bin_to_eight_dec_digits(99999999, bcd_buf);
+	//
+	uint32_t i=0;
+	uint32_t j=0;
+	for (; i<99999999; i++)
+	{
+		bin_to_eight_dec_digits(i, bcd_buf);
+		j = eight_dec_digits_to_bin(bcd_buf);
+		if (i != j) {
+			abort();
+		}
+	}
 
 	while(1)
 	{
