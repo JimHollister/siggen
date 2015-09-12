@@ -9,14 +9,9 @@
 
 #include <avr/io.h>
 
-/*
-* Initialize the LCD. This assumes that the USI has already been initialized.
-*/
-void lcd_initialize()
-{
-	DDRB |= _BV(DDB1);									// Port B pin 1 is an output for LCD Load
-	PORTB &= ~_BV(PORTB1);								// Port B pin 1 low; LCD Load low
-}
+//////////////////////////////////////////////////////////////////////////
+// Private variables and functions
+//////////////////////////////////////////////////////////////////////////
 
 /* 
 * Send the specified number of bits to the LCD shift register. 1 <= num_bits <= 8.
@@ -63,6 +58,23 @@ void lcd_update_display()
 	::);
 	PORTB &= ~_BV(PORTB1);		// Port B pin 1 low; Deassert LCD Load
 }
+
+//////////////////////////////////////////////////////////////////////////
+// Public variables and functions
+//////////////////////////////////////////////////////////////////////////
+
+/*
+* Initialize the LCD. This assumes that the USI has already been initialized.
+*/
+void lcd_initialize()
+{
+	DDRB |= _BV(DDB1);									// Port B pin 1 is an output for LCD Load
+	PORTB &= ~_BV(PORTB1);								// Port B pin 1 low; LCD Load low
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Test functions
+//////////////////////////////////////////////////////////////////////////
 
 void lcd_test_ordered()
 {
