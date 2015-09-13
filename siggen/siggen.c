@@ -37,13 +37,68 @@ int main(void)
 //	dds_test4();
 //	dds_test5();
 
+while (1) {
+	//lcd_show_integer(12345678);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_COLON_RIGHT);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP2);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP3);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP4);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_COLON_LEFT);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP6);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP7);
+	//_delay_ms(1000);
+	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP8);
+	//_delay_ms(1000);
+	lcd_clear();
+	_delay_ms(5000);
+	lcd_show_integer(1234567);
+	_delay_ms(5000);
+	lcd_show_ascii("89ABCDEF");
+	_delay_ms(5000);
+	lcd_show_ascii("GHIJKLMN");
+	_delay_ms(5000);
+	lcd_show_ascii("OPQRSTUV");
+	_delay_ms(5000);
+	lcd_show_ascii("WXYZ    ");
+	_delay_ms(5000);
+	lcd_segment_test();
+	_delay_ms(5000);
+}
+
+
+	//char ascii_buf[8];
+	//for (uint8_t row=0; row<12; row++) {
+		//for (uint8_t column=0; column<8; column++) {
+			//uint8_t ascii_code = 0x20 + ((row << 3) + column);
+			//ascii_buf[column] = ascii_code;
+		//}
+		//lcd_show_ascii(ascii_buf);
+		//_delay_ms(5000);
+	//}
+
+	//uint32_t i = 0;
+	//while (1) {
+////		_delay_ms(1);
+		//lcd_show_integer(i);
+		//i += 1;
+		//if (i > 99999999) {i = 0;}
+	//}
+
 	while(1)
 	{
-		unsigned long freq = 100000;
+//		unsigned long freq = 100000;
 		
 		// DDS and LCD communication tests
 		PORTB &= ~_BV(PORTB7);		// Set USCK initially low to verify that it goes high before toggling
 		while (1) {
+			
 // 			dds_test1();
 // 			_delay_us(50);
 //			lcd_test_off();
@@ -53,10 +108,10 @@ int main(void)
 //			lcd_test_on();
 //			_delay_ms(1000);
 
-			dds_set_frequency_integral(freq);
-			//_delay_ms(1);
-			_delay_us(100);
-			freq = freq >= 15000000 ? 100000 : freq + 100;
+			//dds_set_frequency_integral(freq);
+			////_delay_ms(1);
+			//_delay_us(100);
+			//freq = freq >= 15000000 ? 100000 : freq + 100;
 		}
 
 		//for (uint16_t i = 0; i<1000; i++) {}

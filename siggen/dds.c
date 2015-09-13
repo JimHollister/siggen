@@ -73,6 +73,8 @@ const uint16_t dds_phase_addr_bits[2] = {0xC000, 0xE000};	// Register addr bits 
 // Change the DDS frequency by giving it a new tuning word to add to the phase accumulator
 void dds_change_frequency(unsigned long tuning_word) {
 	uint32_t tuning_bits = (uint32_t)(tuning_word & 0x0FFFFFFF);			// Mask tuning value to lower 28 bits only
+	
+//	dds_send_16_bits(dds_control_words[dds_register_set] | dds_control_reset_bit);	// Load control word that identifies register set to use
 		
 	uint16_t freq_word = (uint16_t)(tuning_bits & 0x00003FFF);				// Get least-significant 14 bits of tuning value
 	dds_send_16_bits(dds_freq_addr_bits[dds_register_set] | freq_word);		// Set top two bits to register address and send freq LSBs to DDS

@@ -1,3 +1,7 @@
+/*
+* Functions for binary to BCD conversion
+*/
+
 #ifndef BCD_H_
 #define BCD_H_
 
