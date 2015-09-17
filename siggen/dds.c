@@ -24,12 +24,17 @@ void dds_send_16_bits(uint16_t value)
 	uint8_t ls_byte = value;
 	
 	PORTB |= _BV(PORTB7);					// Set USCK initially high. DDS expects this before chip select goes low.
-	PORTB &= ~_BV(PORTB0);				// Port B pin 0 low, DDS chip selected.
+	PORTB &= ~_BV(PORTB0);					// Port B pin 0 low, DDS chip selected.
 	
 	// Send the most-significant byte. Top bit goes first.
 	USIDR = ms_byte;						// Load byte to be sent. This sets the DO line to the value of the top bit.
 	for (uint8_t i=0; i<8; i++) {			// Clock 8 bits out of the USI shift-register
 		USICR |= _BV(USITC);				// Toggle the clock pin, falling edge. DDS samples DO line.
+		asm volatile("nop\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		::);
 		USICR |= _BV(USITC);				// Toggle the clock pin, rising edge
 		USICR |= _BV(USICLK);				// Strobe the USI shift-register and counter; this sets up the next data bit.
 	}
@@ -37,6 +42,11 @@ void dds_send_16_bits(uint16_t value)
 	USIDR = ls_byte;						// Load byte to be sent. This sets the DO line to the value of the top bit.
 	for (uint8_t i=0; i<8; i++) {			// Clock 8 bits out of of the USI shift-register
 		USICR |= _BV(USITC);				// Toggle the clock pin, falling edge. DDS samples DO line.
+		asm volatile("nop\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		"nop\n\t"
+		::);
 		USICR |= _BV(USITC);				// Toggle the clock pin, rising edge
 		USICR |= _BV(USICLK);				// Strobe the USI shift-register and counter; this sets up the next data bit.
 	}
@@ -73,18 +83,15 @@ const uint16_t dds_phase_addr_bits[2] = {0xC000, 0xE000};	// Register addr bits 
 // Change the DDS frequency by giving it a new tuning word to add to the phase accumulator
 void dds_change_frequency(unsigned long tuning_word) {
 	uint32_t tuning_bits = (uint32_t)(tuning_word & 0x0FFFFFFF);			// Mask tuning value to lower 28 bits only
+	uint16_t tuning_bits_lower = (uint16_t)(tuning_bits & 0x00003FFF);			// Get least-significant 14 bits of tuning value
+	uint16_t tuning_bits_upper = (uint16_t)(tuning_bits >> 14);					// Get most-significant 14 bits of tuning value
 	
 //	dds_send_16_bits(dds_control_words[dds_register_set] | dds_control_reset_bit);	// Load control word that identifies register set to use
-		
-	uint16_t freq_word = (uint16_t)(tuning_bits & 0x00003FFF);				// Get least-significant 14 bits of tuning value
-	dds_send_16_bits(dds_freq_addr_bits[dds_register_set] | freq_word);		// Set top two bits to register address and send freq LSBs to DDS
-		
-	freq_word = (uint16_t)(tuning_bits >> 14);								// Get most-significant 14 bits of tuning value
-	dds_send_16_bits(dds_freq_addr_bits[dds_register_set] | freq_word);		// Set top two bits to register address and send freq MSBs to DDS
-		
-	dds_send_16_bits(dds_control_words[dds_register_set]);					// Load control word that identifies register set to use
+	dds_send_16_bits(dds_freq_addr_bits[dds_register_set] | tuning_bits_lower);		// Set top two bits to register address and send freq LSBs to DDS
+	dds_send_16_bits(dds_freq_addr_bits[dds_register_set] | tuning_bits_upper);		// Set top two bits to register address and send freq MSBs to DDS
+	dds_send_16_bits(dds_control_words[dds_register_set]);							// Load control word that identifies register set to use
 	
-	dds_register_set = dds_register_set == 0 ? 1 : 0;						// Select the register set to use next time
+	dds_register_set = dds_register_set == 0 ? 1 : 0;								// Select the register set to use next time
 }
 
 // Multiply the desired frequency by this ratio to get the tuning word. Equal to 2^28 / 75000000.

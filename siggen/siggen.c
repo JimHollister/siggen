@@ -37,7 +37,7 @@ int main(void)
 //	dds_test4();
 //	dds_test5();
 
-while (1) {
+//while (1) {
 	//lcd_show_integer(12345678);
 	//_delay_ms(1000);
 	//lcd_show_integer_with_symbols(12345678, LCD_SYM_COLON_RIGHT);
@@ -56,21 +56,21 @@ while (1) {
 	//_delay_ms(1000);
 	//lcd_show_integer_with_symbols(12345678, LCD_SYM_DP8);
 	//_delay_ms(1000);
-	lcd_clear();
-	_delay_ms(5000);
-	lcd_show_integer(1234567);
-	_delay_ms(5000);
-	lcd_show_ascii("89ABCDEF");
-	_delay_ms(5000);
-	lcd_show_ascii("GHIJKLMN");
-	_delay_ms(5000);
-	lcd_show_ascii("OPQRSTUV");
-	_delay_ms(5000);
-	lcd_show_ascii("WXYZ    ");
-	_delay_ms(5000);
-	lcd_segment_test();
-	_delay_ms(5000);
-}
+	//lcd_clear();
+	//_delay_ms(5000);
+	//lcd_show_integer(1234567);
+	//_delay_ms(5000);
+	//lcd_show_ascii("89ABCDEF");
+	//_delay_ms(5000);
+	//lcd_show_ascii("GHIJKLMN");
+	//_delay_ms(5000);
+	//lcd_show_ascii("OPQRSTUV");
+	//_delay_ms(5000);
+	//lcd_show_ascii("WXYZ    ");
+	//_delay_ms(5000);
+	//lcd_segment_test();
+	//_delay_ms(5000);
+//}
 
 
 	//char ascii_buf[8];
@@ -83,13 +83,14 @@ while (1) {
 		//_delay_ms(5000);
 	//}
 
-	//uint32_t i = 0;
-	//while (1) {
-////		_delay_ms(1);
-		//lcd_show_integer(i);
-		//i += 1;
-		//if (i > 99999999) {i = 0;}
-	//}
+	uint32_t i = 100000;
+	while (1) {
+//		_delay_ms(1);
+		lcd_show_integer(i);
+		dds_set_frequency_integral(i);
+		i += 100;
+		if (i > 2000000) {i = 100000;}
+	}
 
 	while(1)
 	{
